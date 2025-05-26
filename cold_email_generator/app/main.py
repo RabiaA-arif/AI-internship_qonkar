@@ -36,7 +36,6 @@ def create_streamlit_app(llm, portfolio):
 
     url_input = st.text_input("Enter job listing URL:", value="https://www.guru.com/m/find/freelance-jobs/web-data-scraping/")
     job_role = st.text_input("What job role are you targeting?", placeholder="e.g. Frontend Developer")
-
     submit_button = st.button("Generate Cold Email")
 
     if submit_button:

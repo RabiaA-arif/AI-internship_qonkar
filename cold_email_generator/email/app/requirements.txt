@@ -8,5 +8,6 @@ python-dotenv
 pandas
 chromadb
 uuid
-# git+https://github.com/langchain-ai/langchain-integrations.git@main#subdirectory=integrations/providers/groq
-ChatGroq
+# Install langchain_groq from GitHub
+
+git+https://github.com/langchain-ai/langchain-integrations.git@main#subdirectory=integrations/providers/groq

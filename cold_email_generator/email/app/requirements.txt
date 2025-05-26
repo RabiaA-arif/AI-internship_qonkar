@@ -9,3 +9,4 @@ pandas
 chromadb
 uuid
 # git+https://github.com/langchain-ai/langchain-integrations.git@main#subdirectory=integrations/providers/groq
+ChatGroq

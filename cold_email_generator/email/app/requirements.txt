@@ -9,6 +9,7 @@ pandas
 chromadb
 uuid
 langchain_groq
+chromadb
 # Install langchain_groq from GitHub
 
 # git+https://github.com/langchain-ai/langchain-integrations.git@main#subdirectory=integrations/providers/groq

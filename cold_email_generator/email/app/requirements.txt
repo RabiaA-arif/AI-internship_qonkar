@@ -10,4 +10,4 @@ chromadb
 uuid
 # Install langchain_groq from GitHub
 
-git+https://github.com/langchain-ai/langchain-integrations.git@main#subdirectory=integrations/providers/groq
+# git+https://github.com/langchain-ai/langchain-integrations.git@main#subdirectory=integrations/providers/groq

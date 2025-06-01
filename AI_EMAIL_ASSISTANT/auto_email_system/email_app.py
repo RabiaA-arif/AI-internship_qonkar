@@ -11,9 +11,9 @@ from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
-username = st.secrets("EMAIL_ID")
-password = st.secrets("EMAIL_PASSWORD")
-api_gemini_key = st.secrets("GEMINI_API_KEY")
+username = st.secrets["EMAIL_ID"]
+password = st.secrets["EMAIL_PASSWORD"]
+api_gemini_key = st.secrets["GEMINI_API_KEY"]
 
 # Configure Gemini
 genai.configure(api_key=api_gemini_key)

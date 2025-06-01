@@ -8,6 +8,7 @@ from email.mime.text import MIMEText
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
 
 # Load environment variables
 load_dotenv()
@@ -19,36 +20,65 @@ api_gemini_key = st.secrets["GEMINI_API_KEY"]
 genai.configure(api_key=api_gemini_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-def fetch_latest_unread_email():
-    imap = imaplib.IMAP4_SSL("imap.gmail.com")
-    imap.login(username, password)
-    imap.select("INBOX")
-    status, messages = imap.search(None, "UNSEEN")
-    email_ids = messages[0].split()
-    if email_ids:
-        latest_id = email_ids[-1]
-        status, msg_data = imap.fetch(latest_id, "(RFC822)")
-        raw_email = msg_data[0][1]
-        msg = email.message_from_bytes(raw_email)
+# def fetch_latest_unread_email():
+#     imap = imaplib.IMAP4_SSL("imap.gmail.com")
+#     imap.login(username, password)
+#     imap.select("INBOX")
+#     status, messages = imap.search(None, "UNSEEN")
+#     email_ids = messages[0].split()
+#     if email_ids:
+#         latest_id = email_ids[-1]
+#         status, msg_data = imap.fetch(latest_id, "(RFC822)")
+#         raw_email = msg_data[0][1]
+#         msg = email.message_from_bytes(raw_email)
 
-        subject, encoding = decode_header(msg["Subject"])[0]
-        if isinstance(subject, bytes):
-            subject = subject.decode(encoding if encoding else "utf-8")
-        from_ = parseaddr(msg["From"])[1]
+#         subject, encoding = decode_header(msg["Subject"])[0]
+#         if isinstance(subject, bytes):
+#             subject = subject.decode(encoding if encoding else "utf-8")
+#         from_ = parseaddr(msg["From"])[1]
 
-        body = ""
-        if msg.is_multipart():
-            for part in msg.walk():
-                if part.get_content_type() == "text/plain":
-                    body = part.get_payload(decode=True).decode(errors="ignore")
-                    break
-        else:
+#         body = ""
+#         if msg.is_multipart():
+#             for part in msg.walk():
+#                 if part.get_content_type() == "text/plain":
+#                     body = part.get_payload(decode=True).decode(errors="ignore")
+#                     break
+#         else:
+#             body = msg.get_payload(decode=True).decode(errors="ignore")
+
+#         imap.logout()
+#         return from_, subject, body
+#     imap.logout()
+#     return None, None, "No unread emails found."
+  # Add to your imports
+
+def extract_email_body(msg):
+    body = ""
+    if msg.is_multipart():
+        for part in msg.walk():
+            content_type = part.get_content_type()
+            content_disposition = str(part.get("Content-Disposition", ""))
+
+            if "attachment" in content_disposition:
+                continue
+
+            if content_type == "text/plain":
+                body = part.get_payload(decode=True).decode(errors="ignore")
+                break  # Prefer plain text
+            elif content_type == "text/html" and not body:
+                html = part.get_payload(decode=True).decode(errors="ignore")
+                soup = BeautifulSoup(html, "html.parser")
+                body = soup.get_text()
+    else:
+        content_type = msg.get_content_type()
+        if content_type == "text/plain":
             body = msg.get_payload(decode=True).decode(errors="ignore")
+        elif content_type == "text/html":
+            html = msg.get_payload(decode=True).decode(errors="ignore")
+            soup = BeautifulSoup(html, "html.parser")
+            body = soup.get_text()
 
-        imap.logout()
-        return from_, subject, body
-    imap.logout()
-    return None, None, "No unread emails found."
+    return body.strip()
 
 def generate_reply(email_text):
     prompt = f"You are an AI assistant. Read this email and write a polite, professional reply.\n\nEmail:\n{email_text}\n\nReply:"
@@ -69,7 +99,8 @@ def send_reply(to_address, subject, body):
 st.title("📧 AI Email Auto-Responder")
 
 if st.button("📥 Fetch Latest Unread Email"):
-    from_, subject, body = fetch_latest_unread_email()
+    from_, subject,   body = extract_email_body(msg)
+
     if from_:
         st.session_state.from_ = from_
         st.session_state.subject = subject
